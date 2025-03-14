@@ -14,6 +14,7 @@ from PyQt5.QtCore import Qt, QPoint, QMetaObject, Q_ARG, QTimer
 import html
 import re
 from sentence_transformers import SentenceTransformer, util
+from PyQt5.QtCore import Qt, QPropertyAnimation, QRect
 
 # 🔹 Google API 인증 정보 설정
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:\\Users\\SeoJeong\\Downloads\\gametranskey1.json"
@@ -290,45 +291,73 @@ class OverlayWindow(QWidget):
 class TranslatorApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.overlay = None
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle("게임 번역 프로그램")
-        self.setGeometry(100, 100, 400, 200)
-        layout = QVBoxLayout()
+        self.setFixedSize(420, 220)
+        self.setStyleSheet("background-color: #2E2E2E; border-radius: 10px;")
 
+        layout = QVBoxLayout()
+        layout.setSpacing(15)
+        
+        # 🔹 제목 레이블
+        self.title_label = QLabel("🎮 게임 번역 프로그램", self)
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: white;")
+        layout.addWidget(self.title_label)
+
+        # 🔹 창 선택 드롭다운
         self.window_combo = QComboBox()
         self.populate_window_combo()
+        self.window_combo.setStyleSheet(""
+            "background-color: #3A3A3A; color: white; padding: 5px;"
+            "border-radius: 5px; font-size: 14px;"
+        "")
         layout.addWidget(self.window_combo)
 
-        self.start_button = QPushButton("번역 시작")
+        # 🔹 번역 시작 버튼
+        self.start_button = QPushButton("▶ 번역 시작")
+        self.start_button.setStyleSheet(""
+            "background-color: #4CAF50; color: white; border-radius: 5px;"
+            "padding: 10px; font-size: 16px; font-weight: bold;"
+            "border: none;"
+            "hover { background-color: #45A049; }"
+        "")
         self.start_button.clicked.connect(self.start_translation)
         layout.addWidget(self.start_button)
 
-        self.stop_button = QPushButton("번역 중지")
+        # 🔹 번역 중지 버튼
+        self.stop_button = QPushButton("⏹ 번역 중지")
+        self.stop_button.setStyleSheet(""
+            "background-color: #D32F2F; color: white; border-radius: 5px;"
+            "padding: 10px; font-size: 16px; font-weight: bold;"
+            "border: none;"
+            "hover { background-color: #C62828; }"
+        "")
         self.stop_button.clicked.connect(self.stop_translation)
         layout.addWidget(self.stop_button)
 
         self.setLayout(layout)
+        self.apply_animation()
 
     def populate_window_combo(self):
         self.window_combo.clear()
         self.window_combo.addItems(get_window_titles())
 
     def start_translation(self):
-        global selected_window_title, running
-        selected_window_title = self.window_combo.currentText()
-        running = True
-        self.overlay = OverlayWindow()
-        threading.Thread(target=translation_loop, args=(self.overlay,), daemon=True).start()
+        print("🟢 번역 시작!")
 
     def stop_translation(self):
-        global running
-        running = False
-        print("🛑 번역 중지됨")
-        
-# 🔹 프로그램 실행
+        print("🔴 번역 중지!")
+
+    def apply_animation(self):
+        self.animation = QPropertyAnimation(self, b"geometry")
+        self.animation.setDuration(400)
+        self.animation.setStartValue(QRect(self.x(), self.y() - 50, self.width(), self.height()))
+        self.animation.setEndValue(QRect(self.x(), self.y(), self.width(), self.height()))
+        self.animation.start()
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     translator_ui = TranslatorApp()
